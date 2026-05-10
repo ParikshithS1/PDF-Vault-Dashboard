@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | My App</title>
+    <!-- Check that this exact line is present: -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 flex items-center justify-center min-h-screen">
+
+    <div class="bg-white p-10 rounded-2xl shadow-lg w-full max-w-sm border border-slate-100">
+        <h2 class="text-3xl font-extrabold text-slate-800 mb-2 text-center">Login</h2>
+        <p class="text-slate-500 text-center mb-8 text-sm">Welcome back! Please enter your details.</p>
+        
+        <div class="space-y-5">
+            <div>
+                <input type="text" id="username" placeholder="Username" 
+                    class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none transition-all">
+            </div>
+ 
+            <div>
+                <input type="password" id="password" placeholder="Password (try 123)" 
+                    class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none transition-all">
+            </div>
+
+            <button onclick="handleLogin()" 
+                class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl shadow-md hover:shadow-indigo-200 transition-all active:scale-[0.98]">
+                Sign In
+            </button>
+        </div>
+
+        <p class="text-center text-slate-500 mt-8 text-sm font-medium">
+            Don't have an account? <a href="signup.html" class="text-indigo-600 hover:text-indigo-800 underline underline-offset-4">Sign up here</a>
+        </p>
+    </div>
+<script>
+    async function handleLogin() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        try {
+            const response = await fetch('http://localhost:5000/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                localStorage.setItem('token', data.token);
+                // Redirect to your ACTUAL dashboard page, NOT index.html
+                window.location.href = 'dashboard.html'; 
+            } else {
+                alert(data.message || "Login failed");
+            }
+        } catch (err) {
+            console.error("Error:", err);
+            alert("Could not connect to server.");
+        }
+    }
+</script>
+
+
+</body>
+</html>
