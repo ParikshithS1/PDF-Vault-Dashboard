@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | My App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dashboard | My PDF Manager</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { margin: 0; background-color: #f8fafc; overflow-x: hidden; }
@@ -17,6 +17,9 @@
             100% { transform: translate(10vw, 20vh) scale(1.1); } 
         }
         .glass { background: rgba(255, 255, 255, 0.4) !important; backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.4) !important; }
+        
+        /* Disable browser zoom for layout stability */
+        html, body { touch-action: none; -webkit-text-size-adjust: 100%; }
     </style>
 </head>
 <body class="min-h-screen font-sans relative">
@@ -26,28 +29,42 @@
         <div class="blob blob-3"></div>
     </div>
 
-    <!-- TOAST -->
-    <div id="toastContainer" class="hidden fixed inset-0 z-[100] flex items-center justify-center pointer-events-none">
-        <div id="toastBox" class="px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-3 border transition-all">
-            <span id="toastMessage" class="font-bold"></span>
+    <!-- TOAST NOTIFICATIONS -->
+    <div id="toastContainer" class="hidden fixed top-10 inset-x-0 z-[100] flex justify-center pointer-events-none">
+        <div id="toastBox" class="px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-3 border transition-all transform scale-100">
+            <span id="toastMessage" class="font-bold text-white"></span>
         </div>
     </div>
 
-    <!-- MODAL -->
+    <!-- DELETE CONFIRMATION MODAL -->
     <div id="deleteModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
         <div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl">
             <h3 class="text-xl font-bold text-center mb-6">Delete <span id="modalFilename" class="text-red-500"></span>?</h3>
             <div class="flex gap-4">
-                <button onclick="closeModal()" class="flex-1 py-3 bg-slate-100 rounded-xl font-bold">Cancel</button>
-                <button id="confirmDeleteBtn" class="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold">Delete</button>
+                <button onclick="closeModal('deleteModal')" class="flex-1 py-3 bg-slate-100 rounded-xl font-bold hover:bg-slate-200 transition-all">Cancel</button>
+                <button id="confirmDeleteBtn" class="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all">Delete</button>
             </div>
         </div>
     </div>
 
-    <!-- NAV -->
-    <nav class="glass border-b border-white/20 px-8 py-4 flex justify-between items-center sticky top-0 z-50">
+    <!-- LOGOUT CONFIRMATION MODAL -->
+    <div id="logoutModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl">
+            <h3 class="text-xl font-bold text-center mb-2">Ready to Leave?</h3>
+            <p class="text-slate-500 text-center mb-8 text-sm">Are you sure you want to log out?</p>
+            <div class="flex gap-4">
+                <!-- Silver Button for No -->
+                <button onclick="closeModal('logoutModal')" class="flex-1 py-3 bg-[#C0C0C0] text-slate-800 rounded-xl font-bold hover:bg-slate-400 transition-all">No</button>
+                <!-- Red Button for Confirm -->
+                <button onclick="confirmLogout()" class="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 shadow-lg shadow-red-200 transition-all">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NAVIGATION -->
+    <nav class="glass border-b border-white/20 px-8 py-4 flex justify-between items-center sticky top-0 z-40">
         <a href="dashboard.html" class="text-xl font-bold text-indigo-600 flex items-center">📂 My PDF Manager</a>
-        <button onclick="logout()" class="px-4 py-2 text-sm font-bold text-slate-600 border border-white/40 rounded-xl hover:bg-red-50 hover:text-red-600 transition-all">Logout</button>
+        <button onclick="openLogoutModal()" class="px-4 py-2 text-sm font-bold text-slate-600 border border-white/40 rounded-xl hover:bg-red-50 hover:text-red-600 transition-all">Logout</button>
     </nav>
 
     <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8 mt-10 px-6 pb-20">
@@ -64,7 +81,7 @@
                     </div>
                     <div class="flex gap-2">
                         <button onclick="document.getElementById('pdfInput').click()" class="flex-1 bg-white/60 text-[10px] font-black py-3 rounded-xl border border-white/40 uppercase">Pick</button>
-                        <button id="submitBtn" onclick="uploadPDF()" disabled class="flex-1 bg-indigo-600 text-white text-[10px] font-black py-3 rounded-xl shadow-lg disabled:bg-slate-300 uppercase">Submit</button>
+                        <button id="submitBtn" onclick="uploadPDF()" disabled class="flex-1 bg-indigo-600 text-white text-[10px] font-black py-3 rounded-xl shadow-lg disabled:bg-slate-300 uppercase transition-all">Submit</button>
                     </div>
                 </div>
             </div>
@@ -73,9 +90,9 @@
         <main class="md:col-span-8 lg:col-span-9">
             <div class="glass p-8 rounded-[2rem] shadow-xl min-h-[500px]">
                 <div class="flex justify-between items-center mb-8">
-                    <h1 id="welcome-msg" class="text-3xl font-black text-slate-800 tracking-tighter italic">Hello!</h1>
+                    <h1 id="welcome-msg" class="text-3xl font-black text-slate-800 tracking-tighter italic uppercase">WELCOME</h1>
                     <div id="bulkActions" class="hidden animate-in slide-in-from-right-4 duration-300">
-                        <button onclick="deleteSelected()" class="bg-red-600 text-white px-6 py-2.5 rounded-xl text-xs font-black uppercase shadow-lg shadow-red-200">Delete Selected</button>
+                        <button onclick="deleteSelected()" class="bg-red-600 text-white px-6 py-2.5 rounded-xl text-xs font-black uppercase shadow-lg shadow-red-200 hover:bg-red-700 transition-all">Delete Selected</button>
                     </div>
                 </div>
 
@@ -93,7 +110,22 @@
     const token = localStorage.getItem('token');
     let filesToDeleteArray = [];
 
-    if (!token) { window.location.href = 'index.html'; } else { loadDashboard(); }
+    // 1. Initial Load and Auth Check
+    if (!token) { 
+        window.location.href = 'index.html'; 
+    } else { 
+        // Check for Login Success status in URL
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('status') === 'login') {
+            triggerToast("Logged in successfully!", "success");
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+        loadDashboard(); 
+    }
+
+    // 2. Browser Zoom Prevention
+    window.addEventListener('wheel', e => e.ctrlKey && e.preventDefault(), { passive: false });
+    window.addEventListener('keydown', e => e.ctrlKey && ['+','-','=','0'].includes(e.key) && e.preventDefault());
 
     function handleFileSelection() {
         const input = document.getElementById('pdfInput');
@@ -109,27 +141,91 @@
     }
 
     async function loadDashboard() {
-        try {
-            const res = await fetch('http://localhost:5000/api/dashboard', { headers: { 'Authorization': token } });
-            const data = await res.json();
-            document.getElementById('welcome-msg').innerText = `WELCOME, ${data.user}`;
-            document.getElementById('bulkActions').classList.add('hidden');
-            document.getElementById('selectAll').checked = false;
+        const savedName = localStorage.getItem('username') || "Guest";
+        document.getElementById('welcome-msg').innerText = `WELCOME, ${savedName.toUpperCase()}`;
 
+        try {
+            const res = await fetch('http://localhost:5001/api/dashboard', { 
+                headers: { 'Authorization': token } 
+            });
+            const data = await res.json();
             const list = document.getElementById('pdf-list');
-            list.innerHTML = data.pdfs.map(file => `
-                <li class="group flex items-center justify-between p-4 bg-white/40 border border-white/40 rounded-2xl hover:bg-white/80 transition-all shadow-sm">
-                    <div class="flex items-center truncate flex-1">
-                        <input type="checkbox" value="${file}" onchange="updateBulkToolbar()" class="file-checkbox h-5 w-5 mr-4 rounded-md border-slate-300 text-indigo-600 cursor-pointer">
-                        <a href="http://localhost:5000/uploads/${file}" target="_blank" class="text-slate-700 font-bold text-sm truncate hover:text-indigo-600 transition-colors">${file}</a>
-                    </div>
-                    <button onclick="openDeleteModal(['${file}'])" class="ml-4 p-2 text-slate-300 hover:text-red-600 transition-colors">
-                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                    </button>
-                </li>`).join('');
+
+            if (data.pdfs && data.pdfs.length > 0) {
+                list.innerHTML = data.pdfs.map(file => `
+                    <li class="bg-white/50 border border-white/40 p-4 rounded-2xl flex items-center justify-between group hover:shadow-lg transition-all">
+                        <div class="flex items-center gap-4 truncate flex-1">
+                            <input type="checkbox" value="${file}" onchange="updateBulkToolbar()" class="file-checkbox h-5 w-5 rounded border-slate-300 text-indigo-600">
+                            <span class="text-sm font-bold text-slate-700 truncate">${file}</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <a href="http://localhost:5001/api/download/${file}" target="_blank" class="p-2 hover:bg-indigo-50 rounded-lg text-indigo-600">📥</a>
+                            <button onclick="openDeleteModal(['${file}'])" class="p-2 hover:bg-red-50 rounded-lg text-red-600">🗑️</button>
+                        </div>
+                    </li>
+                `).join('');
+            } else {
+                list.innerHTML = `<p class="col-span-full text-center text-slate-400 py-10 font-bold uppercase text-xs">No documents found</p>`;
+            }
         } catch (err) { console.error(err); }
     }
 
+    async function uploadPDF() {
+        const input = document.getElementById('pdfInput');
+        const formData = new FormData();
+        for (const file of input.files) { formData.append('pdfs', file); }
+
+        try {
+            const res = await fetch('http://localhost:5001/api/upload', {
+                method: 'POST',
+                headers: { 'Authorization': token },
+                body: formData
+            });
+
+            if (res.ok) {
+                triggerToast("Upload Complete!", "success");
+                input.value = '';
+                handleFileSelection();
+                loadDashboard();
+            }
+        } catch (err) { triggerToast("Upload Failed", "error"); }
+    }
+
+    // Modal Controls
+    function openDeleteModal(files) {
+        filesToDeleteArray = files;
+        document.getElementById('modalFilename').innerText = files.length === 1 ? 'this file' : `${files.length} items`;
+        document.getElementById('deleteModal').classList.remove('hidden');
+    }
+
+    function openLogoutModal() { 
+        document.getElementById('logoutModal').classList.remove('hidden'); 
+    }
+
+    function closeModal(id) { 
+        document.getElementById(id).classList.add('hidden'); 
+    }
+
+    document.getElementById('confirmDeleteBtn').onclick = async function() {
+        const res = await fetch(`http://localhost:5001/api/delete`, {
+            method: 'DELETE',
+            headers: { 'Authorization': token, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ filenames: filesToDeleteArray })
+        });
+        const result = await res.json();
+        if (result.success) {
+            closeModal('deleteModal');
+            triggerToast(`${filesToDeleteArray.length} Item(s) Deleted!`, "error");
+            loadDashboard();
+        }
+    };
+
+    function confirmLogout() {
+        localStorage.clear();
+        window.location.href = "index.html?status=logout";
+    }
+
+    // UI Helpers
     function toggleSelectAll() {
         const isChecked = document.getElementById('selectAll').checked;
         document.querySelectorAll('.file-checkbox').forEach(cb => cb.checked = isChecked);
@@ -146,48 +242,18 @@
         openDeleteModal(filenames);
     }
 
-    function openDeleteModal(files) {
-        filesToDeleteArray = files;
-        document.getElementById('modalFilename').innerText = files.length === 1 ? 'this file' : `${files.length} items`;
-        document.getElementById('deleteModal').classList.remove('hidden');
-    }
-
-    document.getElementById('confirmDeleteBtn').onclick = async function() {
-        const res = await fetch(`http://localhost:5000/api/delete`, {
-            method: 'DELETE',
-            headers: { 'Authorization': token, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ filenames: filesToDeleteArray })
-        });
-        if ((await res.json()).success) {
-            closeModal();
-            triggerToast(`${filesToDeleteArray.length} Item(s) Deleted!`, "delete");
-            loadDashboard();
-        }
-    };
-
-    async function uploadPDF() {
-        const input = document.getElementById('pdfInput');
-        const formData = new FormData();
-        for (let file of input.files) { formData.append('pdf', file); }
-        const res = await fetch('http://localhost:5000/api/upload', { method: 'POST', headers: { 'Authorization': token }, body: formData });
-        const data = await res.json();
-        if (data.success) {
-            triggerToast(`${data.count} File(s) Uploaded!`, "success");
-            input.value = ""; handleFileSelection(); loadDashboard();
-        }
-    }
-
-    function triggerToast(m, t) {
+    function triggerToast(m, type) {
         const container = document.getElementById('toastContainer');
         const box = document.getElementById('toastBox');
         document.getElementById('toastMessage').innerText = m;
-        box.className = (t === "delete") ? "bg-red-600 text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center border border-red-500 animate-bounce" : "bg-indigo-600 text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center border border-indigo-500 animate-pulse";
+        
+        box.className = (type === "success") 
+            ? "bg-indigo-600 text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center border border-indigo-500 animate-pulse" 
+            : "bg-red-600 text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center border border-red-500 animate-bounce";
+            
         container.classList.remove('hidden');
         setTimeout(() => { container.classList.add('hidden'); }, 3000);
     }
-
-    function closeModal() { document.getElementById('deleteModal').classList.add('hidden'); }
-    function logout() { localStorage.removeItem('token'); window.location.href = 'index.html'; }
 </script>
 </body>
 </html>

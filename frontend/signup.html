@@ -2,63 +2,124 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 1. VIEWPORT ZOOM FIX -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Sign Up | My App</title>
-    <!-- Tailwind CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 2. CSS ZOOM & LAYOUT FIXES */
+        html, body { 
+            height: 100%; 
+            width: 100%; 
+            margin: 0; 
+            overflow: hidden; 
+            background-color: #f8fafc;
+            position: fixed; 
+            touch-action: none; 
+            -webkit-text-size-adjust: 100%; 
+        }
+        .blob-wrapper { position: fixed; inset: 0; z-index: -1; overflow: hidden; filter: blur(80px); }
+        .blob { position: absolute; width: 500px; height: 500px; border-radius: 50%; opacity: 0.3; animation: float 20s infinite alternate ease-in-out; }
+        .blob-1 { background: #6366f1; top: -10%; left: -10%; }
+        .blob-2 { background: #a855f7; bottom: -10%; right: -10%; animation-duration: 25s; }
+        @keyframes float { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(5vw, 10vh) scale(1.1); } }
+        
+        .glass { background: rgba(255, 255, 255, 0.6) !important; backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.4) !important; }
+        .valid { color: #10b981; } 
+        .invalid { color: #94a3b8; }
+        
+        /* Prevents font-zoom on mobile */
+        input { font-size: 16px !important; }
+    </style>
 </head>
-<body class="bg-slate-50 flex items-center justify-center min-h-screen">
+<body class="flex items-center justify-center font-sans">
+    <div class="blob-wrapper">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
 
-    <div class="bg-white p-10 rounded-2xl shadow-lg w-full max-w-sm border border-slate-100">
-        <h2 class="text-3xl font-extrabold text-slate-800 mb-2 text-center">Create Account</h2>
-        <p class="text-slate-500 text-center mb-8 text-sm">Join us today! It only takes a minute.</p>
+    <div class="glass p-10 rounded-[2.5rem] shadow-2xl w-full max-w-sm mx-4">
+        <h2 class="text-4xl font-black text-slate-800 mb-2 text-center tracking-tighter italic">Join Us.</h2>
+        <p class="text-center text-slate-500 text-xs font-bold uppercase tracking-widest mb-8">Create your account</p>
         
         <div class="space-y-5">
             <div>
-                <label class="block text-xs font-bold text-slate-400 uppercase mb-1 ml-1">Username</label>
-                <input type="text" id="reg-user" placeholder="Choose a username" 
-                    class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none transition-all">
+                <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 ml-1 tracking-widest">Username</label>
+                <input type="text" id="reg-user" placeholder="Choose a name" class="w-full px-5 py-4 bg-white/50 border border-white/60 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all font-medium">
             </div>
-
             <div>
-                <label class="block text-xs font-bold text-slate-400 uppercase mb-1 ml-1">Password</label>
-                <input type="password" id="reg-pass" placeholder="Create a password" 
-                    class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none transition-all">
+                <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 ml-1 tracking-widest">Password</label>
+                <input type="password" id="reg-pass" onkeyup="validate()" placeholder="••••••••" class="w-full px-5 py-4 bg-white/50 border border-white/60 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all font-medium">
+                <div class="mt-4 ml-1 space-y-1.5">
+                    <p id="r-len" class="text-[9px] font-black invalid tracking-wider transition-colors uppercase">● 8-15 Characters</p>
+                    <p id="r-up" class="text-[9px] font-black invalid tracking-wider transition-colors uppercase">● One Uppercase</p>
+                    <p id="r-sp" class="text-[9px] font-black invalid tracking-wider transition-colors uppercase">● One Special Char</p>
+                </div>
             </div>
-
-            <button onclick="handleSignup()" 
-                class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl shadow-md hover:shadow-indigo-200 transition-all active:scale-[0.98]">
-                Create Account
-            </button>
+            
+            <button onclick="handleSignup()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-2xl shadow-xl shadow-indigo-200 transition-all active:scale-[0.98] uppercase text-xs tracking-widest mt-4">Create Account</button>
+            
+            <p class="text-center text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-6">
+                Already have an account? <a href="index.html" class="text-indigo-600 hover:underline">Log In</a>
+            </p>
         </div>
-
-        <p class="text-center text-slate-500 mt-8 text-sm font-medium">
-            Already have an account? <a href="index.html" class="text-indigo-600 hover:text-indigo-800 underline underline-offset-4">Login here</a>
-        </p>
     </div>
 
     <script>
+        // 3. JAVASCRIPT ZOOM BLOCKERS
+        window.addEventListener('wheel', (e) => { if (e.ctrlKey) e.preventDefault(); }, { passive: false });
+        window.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && (e.key === '+' || e.key === '-' || e.key === '=' || e.key === '0')) e.preventDefault();
+        });
+
+        function validate() {
+            const p = document.getElementById('reg-pass').value;
+            const l = p.length >= 8 && p.length <= 15;
+            const u = /[A-Z]/.test(p);
+            const s = /[!@#$%^&*]/.test(p);
+
+            const updateClass = (id, isValid) => {
+                const el = document.getElementById(id);
+                el.className = `text-[9px] font-black tracking-wider transition-colors uppercase ${isValid ? 'valid' : 'invalid'}`;
+            };
+
+            updateClass('r-len', l);
+            updateClass('r-up', u);
+            updateClass('r-sp', s);
+
+            return l && u && s;
+        }
+
         async function handleSignup() {
-            const user = document.getElementById('reg-user').value;
+            const user = document.getElementById('reg-user').value.trim();
             const pass = document.getElementById('reg-pass').value;
 
-            if (!user || !pass) {
-                alert("Please fill in all fields");
-                return;
-            }
+            if (!user) return alert("Please enter a username");
+            if (!validate()) return alert("Password does not meet requirements!");
 
-            const res = await fetch('http://localhost:5000/api/signup', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username: user, password: pass })
-            });
+            try {
+                const res = await fetch('http://localhost:5001/api/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: user, password: pass })
+                });
 
-            const data = await res.json();
-            if (data.success) {
-                alert("Account created! Redirecting to login...");
-                window.location.href = "index.html";
-            } else {
-                alert("Error: " + data.message);
+                const contentType = res.headers.get("content-type");
+                if (contentType && contentType.indexOf("application/json") !== -1) {
+                    const data = await res.json();
+                    if (data.success) {
+                        alert("Welcome! Account created successfully.");
+                        window.location.href = "index.html"; 
+                    } else {
+                        alert(data.message || "Signup failed");
+                    }
+                } else {
+                    alert("Error: Server sent back HTML instead of JSON. Check your server console.");
+                }
+
+            } catch (err) {
+                console.error("Signup Error:", err);
+                alert("Cannot connect to server. Ensure server.js is running.");
             }
         }
     </script>
